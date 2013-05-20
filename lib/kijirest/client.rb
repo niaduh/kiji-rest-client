@@ -35,6 +35,10 @@ module KijiRest
       def initialize(json_error)
         @json_error_message =  json_error
       end
+
+      def to_s
+        json_error_message.to_json
+      end
     end
 
     #
@@ -146,8 +150,11 @@ module KijiRest
     # enclosed in single quotes to satisfy the server-side requirements.
     # param: components are the individual components that comprise the rowkey
     def rowkey(instance_name, table_name, *components)
-      get_json(entityid_endpoint(instance_name, table_name),
+      return_obj = get_json(entityid_endpoint(instance_name, table_name),
           "eid" => Client::format_entity_id(*components))
+      if return_obj
+        return_obj["rowKey"]
+      end
     end
 
     # Creates or updates a new row by POSTing the row_hash to the server. Will create/update
@@ -242,7 +249,7 @@ module KijiRest
     # param: endpoint is the HTTP endpoint
     # param: query_params are query parameters to pass along to the endpoint
     def get_json(endpoint, query_params= {})
-      url_query_params =  query_params.map {|k, v| "#{k}= #{CGI.escape(v.to_s)}"}.join("&")
+      url_query_params =  query_params.map {|k, v| "#{k}=#{CGI.escape(v.to_s)}"}.join("&")
       uri =  URI(@base_uri)
       http =  Net::HTTP.new(uri.host, uri.port)
       response =  http.get("#{endpoint}?#{url_query_params}")
