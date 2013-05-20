@@ -27,9 +27,9 @@ module KijiRest
   # has permissions to read/write to the location where KIJI_REST is
   # installed
   class Server
-    KIJI_REST_HOME="/opt/wibi/kiji-rest"
-    def initialize(kiji_rest_home=KIJI_REST_HOME)
-      @kiji_server_location=kiji_rest_home
+    KIJI_REST_HOME = "/opt/wibi/kiji-rest"
+    def initialize(kiji_rest_home = KIJI_REST_HOME)
+      @kiji_server_location = kiji_rest_home
       unless authorized_to_run?
         raise "#{ENV['USER']} not authorized to run KijiREST server!"
       end
@@ -44,7 +44,7 @@ module KijiRest
     #        of the REST server.
     # param: wait_for_load specifies whether or not to block until the server has come up. If the
     #        server fails to come up after some period of time, an exception will be raised.
-    def start(zk_quorum=".env",visible_instances=["default"], wait_for_load=false)
+    def start(zk_quorum = ".env", visible_instances = ["default"], wait_for_load = false)
       if running?
         raise "KijiREST appears to be running."
       else
@@ -54,11 +54,11 @@ module KijiRest
         kiji_uri = "kiji://.env" if zk_quorum == ".env"
         dropwizard_config["cluster"] = kiji_uri
         dropwizard_config["instances"] = visible_instances
-        f=File.new(qualify_file("/conf/configuration.yml"),"w")
+        f = File.new(qualify_file("/conf/configuration.yml"), "w")
         f.puts(dropwizard_config.to_yaml)
         f.close
         #Now start the service
-        launch_command=qualify_file("/bin/kiji-rest")
+        launch_command = qualify_file("/bin/kiji-rest")
         %x{#{launch_command}}
         if wait_for_load
           (1..20).each {|i|
@@ -75,10 +75,10 @@ module KijiRest
     # Stops the server optionally waiting for the server to shutdown
     # param: wait_for_shutdown determines whether or not to wait for the server to have shutdown
     #        before returning.
-    def stop(wait_for_shutdown=false)
+    def stop(wait_for_shutdown = false)
       pid_file = qualify_file("kiji-rest.pid")
       if File.exist?(pid_file)
-        pid_file_obj = File.new(pid_file,"r")
+        pid_file_obj = File.new(pid_file, "r")
         pid = pid_file_obj.gets
         pid_file_obj.close
         #Kill the pid cleanly first
@@ -136,8 +136,8 @@ module KijiRest
     # when the server is launched by a non-privileged user as well as the pid file
     # generated when this server is launched by /sbin/service.
     def pid_exists?
-      local_pid_file=qualify_file("kiji-rest.pid")
-      global_pid_file="/var/run/kiji-rest/kiji-rest.pid"
+      local_pid_file = qualify_file("kiji-rest.pid")
+      global_pid_file = "/var/run/kiji-rest/kiji-rest.pid"
       File.exists?(local_pid_file) || File.exists?(global_pid_file)
     end
 

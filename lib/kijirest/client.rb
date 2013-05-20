@@ -22,32 +22,31 @@ require 'cgi'
 
 module KijiRest
 
-  #
   # Provides a simple wrapper interface around the KijiREST server. The return of most
   # of the methods are parsed JSON.
   class Client
 
-    #Some global helpful constants for clients.
-    ENTITY_ID="entityId"
+    # Some global helpful constants for clients.
+    ENTITY_ID = "entityId"
 
-    #Error class that wraps exceptions thrown by the server
+    # Error class that wraps exceptions thrown by the server
     class KijiRestClientError < StandardError
       attr_reader :json_error_message
       def initialize(json_error)
-        @json_error_message = json_error
+        @json_error_message =  json_error
       end
     end
 
     #
     # Constructor for the KijiRest::Client. The only optional argument is the base_uri
     # defining the location of the server.
-    def initialize(base_uri="http://localhost:8080")
-      @base_uri=base_uri
-      @version="v1"
+    def initialize(base_uri= "http://localhost:8080")
+      @base_uri = base_uri
+      @version = "v1"
     end
 
     #
-    #Returns a list of visible instances
+    # Returns a list of visible instances
     def instances
       get_json(instances_endpoint)
     end
@@ -65,8 +64,8 @@ module KijiRest
     # param: rowkey is the rowkey to fetch
     # param: filters is a hash containing any filters to apply which will get translated as
     #        query parameters in the REST call.
-    def row(instance_name, table_name, rowkey,filters={})
-      get_json("#{rows_endpoint(instance_name, table_name)}/#{rowkey}",filters)
+    def row(instance_name, table_name, rowkey, filters= {})
+      get_json("#{rows_endpoint(instance_name, table_name)}/#{rowkey}", filters)
     end
 
     # Returns a list of the tables in the given instance.
@@ -78,7 +77,7 @@ module KijiRest
     # Returns the table layout for a given table.
     # param: instance_name is the name of the instance
     # param: table_name is the name of the table
-    def table(instance_name,table_name)
+    def table(instance_name, table_name)
       get_json(table_endpoint(instance_name, table_name))
     end
 
@@ -89,38 +88,38 @@ module KijiRest
     #        query parameters in the REST call.
     # param: block is an anonymous block of code that will be given a hash representing the
     #        current row.
-    def rows(instance_name,table_name,filters={},&block)
+    def rows(instance_name, table_name, filters= {}, &block)
       if !block
         raise "No block given!"
       end
 
-      url_query_params = filters.map {|k,v| "#{k}=#{CGI.escape(v.to_s)}"}.join("&")
-      uri = URI(@base_uri)
-      http = Net::HTTP.new(uri.host, uri.port)
+      url_query_params =  filters.map {|k, v| "#{k}=#{CGI.escape(v.to_s)}"}.join("&")
+      uri =  URI(@base_uri)
+      http =  Net::HTTP.new(uri.host, uri.port)
       http.request_get("#{rows_endpoint(instance_name, table_name)}?#{url_query_params}") \
        do |response|
         case response
         when Net::HTTPSuccess then
-          remainder_json_line = ""
+          remainder_json_line =  ""
           response.read_body { |chunk|
             if chunk.size > 0
-              #Few possible situations: Not sure what can actually happen let's prepare for all
-              #1) chunk is a line that ends with \r\n
-              #2) chunk could be multiple lines and also ends with \r\n
-              #3) chunk has multiples lines but an incomplete last line.
-              remainder_json_line = remainder_json_line + chunk
-              if remainder_json_line[-2..-1] == "\r\n"
-                json_lines = remainder_json_line.split("\r\n")
+              # Few possible situations: Not sure what can actually happen let's prepare for all
+              # 1) chunk is a line that ends with \r\n
+              # 2) chunk could be multiple lines and also ends with \r\n
+              # 3) chunk has multiples lines but an incomplete last line.
+              remainder_json_line =  remainder_json_line + chunk
+              if remainder_json_line[-2..-1] ==  "\r\n"
+                json_lines =  remainder_json_line.split("\r\n")
                 json_lines.each {|line|
                   yield JSON.parse(line)
                 }
-                remainder_json_line = ""
+                remainder_json_line =  ""
               else
-                json_lines = remainder_json_line.split("\r\n")
+                json_lines =  remainder_json_line.split("\r\n")
                 json_lines.slice(0..-2).each {|line|
                   yield JSON.parse(line)
                 }
-                remainder_json_line = json_lines.last
+                remainder_json_line =  json_lines.last
               end
             end
           }
@@ -131,8 +130,8 @@ module KijiRest
     end
 
     def self.format_entity_id(*components)
-      #Take non-strings and quote them
-      json_entity_id = components.map {|comp|
+      # Take non-strings and quote them
+      json_entity_id =  components.map {|comp|
         if comp.is_a?(Numeric)
           comp.to_s
         else
@@ -148,7 +147,7 @@ module KijiRest
     # param: components are the individual components that comprise the rowkey
     def rowkey(instance_name, table_name, *components)
       get_json(entityid_endpoint(instance_name, table_name),
-          "eid"=>Client::format_entity_id(*components))
+          "eid" => Client::format_entity_id(*components))
     end
 
     # Creates or updates a new row by POSTing the row_hash to the server. Will create/update
@@ -165,24 +164,24 @@ module KijiRest
     #        }
     # param: strip_timestamp will remove any timestamp fields from the cells allowing the server
     #        to set the timestamp automatically (default false).
-    def write_row(instance_name, table_name,row_hash,strip_timestamp=false)
+    def write_row(instance_name, table_name, row_hash, strip_timestamp= false)
       if strip_timestamp
-        local_row_hash = row_hash.clone
+        local_row_hash =  row_hash.clone
         if local_row_hash.include?("cells")
           local_row_hash["cells"].each {|cell|
             # TODO: Remove condition when there's a better way to represent cell level error
             # conditions on GETs.
-            cell.delete("timestamp") unless cell["timestamp"] == -1
+            cell.delete("timestamp") unless cell["timestamp"] ==  -1
            }
         end
-        row_json = local_row_hash.to_json
+        row_json =  local_row_hash.to_json
       else
-        row_json = row_hash.to_json
+        row_json =  row_hash.to_json
       end
-      uri=URI(@base_uri)
-      http = Net::HTTP.new(uri.host,uri.port)
-      response = http.post(rows_endpoint(instance_name,table_name), row_json,
-        "Content-Type"=>"application/json")
+      uri= URI(@base_uri)
+      http =  Net::HTTP.new(uri.host, uri.port)
+      response =  http.post(rows_endpoint(instance_name, table_name), row_json,
+        "Content-Type" => "application/json")
       case response
       when Net::HTTPSuccess then
         JSON.parse(response.body)
@@ -193,7 +192,7 @@ module KijiRest
 
     private
 
-    #BEGIN endpoint definitions
+    # BEGIN endpoint definitions
     def instances_endpoint
       "/#{@version}/instances"
     end
@@ -215,9 +214,9 @@ module KijiRest
     end
 
     def entityid_endpoint(instance_name, table_name)
-      "#{table_endpoint(instance_name,table_name)}/entityId"
+      "#{table_endpoint(instance_name, table_name)}/entityId"
     end
-    #END endpoint definitions
+    # END endpoint definitions
 
     # Generic method that will raise a KijiRestClientError that contains a JSON object
     # with the error in question. In case the exception from the server is not JSON encoded,
@@ -229,11 +228,11 @@ module KijiRest
       begin
         raise KijiRestClientError.new(JSON.parse(response_body))
       rescue
-        #If the exception doesn't parse to JSON properly, then return this generic exception
-        json_error={}
-        json_error["exception"] = response_body
-        json_error["status"] = 500
-        json_error["exceptionName"]="internal_error"
+        # If the exception doesn't parse to JSON properly, then return this generic exception
+        json_error= {}
+        json_error["exception"] =  response_body
+        json_error["status"] =  500
+        json_error["exceptionName"]= "internal_error"
 
         raise KijiRestClientError.new(json_error)
       end
@@ -242,12 +241,12 @@ module KijiRest
     # Returns a parsed JSON object for the given endpoint and query parameters
     # param: endpoint is the HTTP endpoint
     # param: query_params are query parameters to pass along to the endpoint
-    def get_json(endpoint,query_params={})
-      url_query_params = query_params.map {|k,v| "#{k}=#{CGI.escape(v.to_s)}"}.join("&")
-      uri = URI(@base_uri)
-      http = Net::HTTP.new(uri.host, uri.port)
-      response = http.get("#{endpoint}?#{url_query_params}")
-      result = nil
+    def get_json(endpoint, query_params= {})
+      url_query_params =  query_params.map {|k, v| "#{k}= #{CGI.escape(v.to_s)}"}.join("&")
+      uri =  URI(@base_uri)
+      http =  Net::HTTP.new(uri.host, uri.port)
+      response =  http.get("#{endpoint}?#{url_query_params}")
+      result =  nil
       case response
       when Net::HTTPSuccess then
         JSON.parse(response.body)
