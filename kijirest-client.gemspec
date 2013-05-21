@@ -15,12 +15,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Instructions (http://blog.thepete.net/2010/11/creating-and-publishing-your-first-ruby.html):
-# Make sure all changed code is committed to git
-# rake install ==> Will install the gem to your local gemset
-# rake release ==> Will publish the gem to rubygems.org. Change the lib/kijirest/version.rb
-# before publishing else an error may happen.
-
 # coding: utf-8
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
