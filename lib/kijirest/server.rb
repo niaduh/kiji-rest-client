@@ -50,8 +50,12 @@ module KijiRest
       else
         #Update the configuration file to reflect the desired options
         dropwizard_config = YAML.load_file(qualify_file("/conf/configuration.yml"))
-        kiji_uri = "kiji://(#{zk_quorum})"
-        kiji_uri = "kiji://.env" if zk_quorum == ".env"
+
+        #Do a bit of string checking so that we aren't adding kiji:// prefix twice.
+        prefix="kiji://"
+        prefix = "" if zk_quorum[0..6] == "kiji://"
+
+        kiji_uri = "#{prefix}#{zk_quorum}"
         dropwizard_config["cluster"] = kiji_uri
         dropwizard_config["instances"] = visible_instances
         f = File.new(qualify_file("/conf/configuration.yml"), "w")
