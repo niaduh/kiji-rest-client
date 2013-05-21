@@ -87,29 +87,3 @@ Or install it yourself as:
 
     # Let's stop the server and wait for the server to shutdown before returning.
     s.stop(true)
-
-## Contributing
-
-1. Fork it
-2. Create your feature branch (`git checkout -b my-new-feature`)
-3. Commit your changes (`git commit -am 'Add some feature'`)
-4. Push to the branch (`git push origin my-new-feature`)
-5. Create new Pull Request
-
-### Publishing [Instructions](http://blog.thepete.net/2010/11/creating-and-publishing-your-first-ruby.html)
-Make sure all changed code is committed to git
-    rake install ==> Will install the gem to your local gemset
-    rake release ==> Will publish the gem to rubygems.org. Change the lib/kijirest/version.rb
-    before publishing else an error may happen.
-
-NOTE: To be able to push to rubygems:
-
-1. Please talk to Chad about access to the Wibidata rubygems account. He'll enable your access
-through Okta.
-2. Once you have access, visit https://rubygems.org/profile/edit which should show the info
-for the Wibidata user. One of this is the API key used to publish gems.
-3. Create a file on your box vi ~/.gem/credentials. The syntax should look like:
-<pre>
-    ---
-    :rubygems_api_key: #API Key from #2
-</pre>
