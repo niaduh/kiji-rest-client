@@ -72,6 +72,16 @@ module KijiRest
       get_json("#{rows_endpoint(instance_name, table_name)}/#{rowkey}", filters)
     end
 
+    # Returns a single row from the given table.
+    # param: instance_name is the name of the instance
+    # param: table_name is the name of the table
+    # param: entity_id is a string of an array consists of predefined components to fetch
+    # param: filters is a hash containing any filters to apply which will get translated as
+    #        query parameters in the REST call.
+    def row_entityid(instance_name, table_name, entity_id, filters= {})
+      get_json("#{rows_endpoint(instance_name, table_name)}?eid=#{entity_id}", filters)
+    end
+
     # Returns a list of the tables in the given instance.
     # param: instance_name is the name of the instance
     def tables(instance_name)
